@@ -1,0 +1,7 @@
+bs4==0.0.2
+requests
+beautifulsoup4
+pandas
+playwright
+python-dotenv
+sentry-sdk
