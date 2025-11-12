@@ -110,7 +110,7 @@ class Katalog:
                 consecutive_empty_pages = 0
                 
                 while consecutive_empty_pages < 2:
-                    url = f"{self.base_url}/review/list/{self.user_id}?shelf={shelf}&page={page}&per_page=30"
+                    url = f"{self.base_url}/review/list/{self.user_id}?shelf={shelf}&page={page}&per_page=100"
                     response = self.session.get(url)
                     
                     if response.status_code != 200:
