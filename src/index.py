@@ -3,9 +3,11 @@ import sys
 import os
 import asyncio
 from dotenv import load_dotenv
+import dateutil.parser
 
 from utils import setup_logging, save_output_files_locally
 from katalog import Katalog
+import db_client
 
 load_dotenv()
 
@@ -34,9 +36,37 @@ async def main():
 
             if ENVIRONMENT != 'production':
                 save_output_files_locally(data)
-            else:
-                logging.info("Skipping file save in production environment.")
-                # TODO: insert stuff into db
+
+            logging.info("Attempting to save data to Supabase...")
+            try:
+                hwm = db_client.get_feed_highwatermark()
+                all_feed_items = data.get('feed_activity', [])
+                new_feed_items = []
+
+                if hwm:
+                    for item in all_feed_items:
+                        item_time = dateutil.parser.isoparse(item.timestamp)
+                        if item_time > hwm:
+                            new_feed_items.append(item)
+                else:
+                    # If no high-water mark, insert all items
+                    new_feed_items = all_feed_items
+                
+                db_client.insert_feed_items(new_feed_items)
+
+                all_books = data.get('books', {}).get('all_books', [])
+                if all_books:
+                    # Add the user_id to each book record for the primary key
+                    for book in all_books:
+                        book.user_id = USER_ID
+                    db_client.upsert_books(all_books)
+                else:
+                    logging.info("No books found in scrape data. Nothing to upsert.")
+                    
+                logging.info("Supabase data sync complete.")
+                
+            except Exception as e:
+                logging.exception("An error occurred during Supabase data insertion.")
             
     except Exception as e:
         # This will catch any fatal, unexpected error

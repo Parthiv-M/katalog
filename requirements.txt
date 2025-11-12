@@ -5,3 +5,5 @@ pandas
 playwright
 python-dotenv
 sentry-sdk
+supabase
+python-dateutil

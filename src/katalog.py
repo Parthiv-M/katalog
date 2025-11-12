@@ -7,11 +7,14 @@ import os
 import ast
 import json
 
+import pydantic
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import asyncio
 from playwright.async_api import async_playwright
+
+from schemas import Book, FeedActivity
 
 class Katalog:
     def __init__(self, cookie_string: str, user_id: str):
@@ -130,7 +133,6 @@ class Katalog:
                         page_books = 0
                         
                         for row in book_rows:
-                            # ... (all your book parsing logic remains identical) ...
                             book = {}
                             
                             # Title
@@ -195,7 +197,6 @@ class Katalog:
                                         except Exception:
                                             pass # Non-fatal, just skip
                             
-                            # ... (rest of date parsing, etc) ...
                             # Date published
                             date_pub_elem = row.find('td', class_='field date_pub')
                             if date_pub_elem:
@@ -262,15 +263,39 @@ class Katalog:
                             book['shelf'] = shelf.replace('-', '_')
                             
                             if book.get('title'):
-                                books_found += 1
-                                page_books += 1
-                                if shelf == 'read':
-                                    books_data['read'].append(book)
-                                elif shelf == 'currently-reading':
-                                    books_data['currently_reading'].append(book)
-                                else:
-                                    books_data['want_to_read'].append(book)
-                                books_data['all_books'].append(book)
+                                try:
+                                    book_obj = Book(
+                                        title=book.get('title'),
+                                        book_url=book.get('book_url'),
+                                        author=book.get('author'),
+                                        isbn=book.get('isbn'),
+                                        rating=book.get('rating'),
+                                        avg_rating=book.get('avg_rating'),
+                                        num_pages=book.get('num_pages'),
+                                        date_published=book.get('date_published'),
+                                        date_added=book.get('date_added'),
+                                        date_started=book.get('date_started'),
+                                        date_read=book.get('date_read'),
+                                        review=book.get('review'),
+                                        shelf=book.get('shelf')
+                                    )
+                                    
+                                    books_found += 1
+                                    page_books += 1
+                                    
+                                    if shelf == 'read':
+                                        books_data['read'].append(book_obj)
+                                    elif shelf == 'currently-reading':
+                                        books_data['currently_reading'].append(book_obj)
+                                    else:
+                                        books_data['want_to_read'].append(book_obj)
+                                    books_data['all_books'].append(book_obj)
+                                except pydantic.ValidationError as e:
+                                    self.logger.warning(
+                                        "Skipping book, failed validation: %s. Data: %s",
+                                        e, book
+                                    )
+                                    continue
                         
                         if page_books > 0:
                             self.logger.debug("Page %s: Found %s books", page, page_books)
@@ -363,7 +388,7 @@ class Katalog:
             
         return metadata
 
-    async def get_home_feed_activity(self) -> List[Dict]:
+    async def get_home_feed_activity(self) -> List[FeedActivity]:
         """Scrape home page feed activity using Playwright's Async API."""
         activities = []
         self.logger.info("Fetching home feed with Playwright (Async)...")
@@ -409,14 +434,35 @@ class Katalog:
 
                 for item in feed_items[:50]:
                     try:
-                        # ... (all your feed parsing logic remains identical) ...
                         activity = {}
                         
                         # User info
                         user_link = item.find('a', class_='gr-user__profileLink')
                         if user_link:
-                            activity['user'] = user_link.text.strip()
-                            activity['user_url'] = user_link.get('href', '')
+                            user_text = user_link.text.strip()
+                            user_url = user_link.get('href', '')
+                            
+                            # List of action texts that might be inside the link
+                            action_texts = ('wants to read', 'is currently reading', 
+                                              'started reading', 'finished reading', 
+                                              'has read', 'rated', 'reviewed', 'added')
+
+                            # If the link text is an action, parse name from URL
+                            if user_text.lower() in action_texts:
+                                if user_url and '-' in user_url:
+                                    # Get name from '.../12345-user-name'
+                                    name_part = user_url.split('-')[-1]
+                                    # Format it to be readable
+                                    activity['user_name'] = ' '.join(
+                                        [word.capitalize() for word in name_part.split('-')]
+                                    )
+                                else:
+                                    activity['user_name'] = "Unknown" # Fallback
+                            else:
+                                # This is the old, working logic
+                                activity['user_name'] = user_text
+                            
+                            activity['user_url'] = user_url
                         
                         # Header
                         header = item.find('div', class_='gr-newsfeedItem__header')
@@ -453,15 +499,21 @@ class Katalog:
                             if activity['author_url'] and not activity['author_url'].startswith('http'):
                                 activity['author_url'] = self.base_url + activity['author_url']
                         
-                        # Timestamp
-                        timestamp = item.find('small', class_='gr-newsfeedItem__headerTimestamp')
-                        if timestamp:
-                            time_elem = timestamp.find('time')
-                            if time_elem:
-                                activity['timestamp'] = time_elem.get('datetime', '')
-                                activity['time_ago'] = time_elem.text.strip()
+                        timestamp_elem = item.find('small', class_='gr-newsfeedItem__headerTimestamp')
+                        if timestamp_elem:
+                            time_tag = timestamp_elem.find('time')
+                            
+                            # Case 1: Found a <time> tag inside
+                            if time_tag and time_tag.get('datetime'):
+                                activity['timestamp'] = time_tag.get('datetime', '')
+                                activity['time_ago'] = time_tag.text.strip()
+                            # Case 2: Check the <small> tag itself for datetime
+                            elif timestamp_elem.get('datetime'):
+                                activity['timestamp'] = timestamp_elem.get('datetime', '')
+                                activity['time_ago'] = timestamp_elem.text.strip()
+                            # Case 3: Just get text
                             else:
-                                activity['time_ago'] = timestamp.get_text(strip=True)
+                                activity['time_ago'] = timestamp_elem.get_text(strip=True)
                         
                         # Description
                         book_desc = item.find('div', class_='gr-book__description')
@@ -470,9 +522,30 @@ class Katalog:
                             desc_text = re.sub(r'Continue reading$', '', desc_text).strip()
                             activity['book_description'] = desc_text[:500]
                         
-                        if activity.get('user') or activity.get('book_title'):
-                            activities.append(activity)
-                            
+                        if activity.get('user_name') or activity.get('book_title'):
+                            try:
+                                activity_obj = FeedActivity(
+                                    user_name=activity.get('user_name'),
+                                    user_url=activity.get('user_url'),
+                                    action=activity.get('action'),
+                                    header_text=activity.get('header_text'),
+                                    book_title=activity.get('book_title'),
+                                    book_url=activity.get('book_url'),
+                                    author=activity.get('author'),
+                                    author_url=activity.get('author_url'),
+                                    timestamp=activity.get('timestamp'),
+                                    time_ago=activity.get('time_ago'),
+                                    rating=activity.get('rating'),
+                                    book_description=activity.get('book_description')
+                                )
+                                activities.append(activity_obj)
+                            except pydantic.ValidationError as e:
+                                self.logger.warning(
+                                    "Skipping feed item, failed validation: %s. Data: %s",
+                                    e, activity
+                                )
+                                continue
+
                     except Exception as e:
                         # Log the non-fatal error but continue the loop
                         self.logger.warning("Skipping problematic feed item: %s", e, exc_info=True)
@@ -568,7 +641,7 @@ class Katalog:
             'shelf_additions_per_month': {}, 'shelf_additions_per_year': {}, 'reading_pace': {}
         }
         if not books_data['all_books']: return stats
-        df = pd.DataFrame(books_data['all_books'])
+        df = pd.DataFrame([book.model_dump() for book in books_data['all_books']])
         date_columns = ['date_added', 'date_read', 'date_started']
         for col in date_columns:
             if col in df.columns:
