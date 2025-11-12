@@ -1,5 +1,5 @@
 # Use the official Playwright image from Microsoft.
-FROM mcr.microsoft.com/playwright/python:v1.55.0-noble
+FROM mcr.microsoft.com/playwright/python
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ COPY requirements.txt /app/
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-RUN playwright install chrome --with-deps
+RUN playwright install chromium --with-deps
 
 COPY ./src/* /app/
 
