@@ -1,4 +1,3 @@
-from dotenv import load_dotenv
 import pandas as pd
 import os
 import logging
@@ -7,11 +6,7 @@ from datetime import datetime
 import json
 import sentry_sdk
 
-load_dotenv()
-
-SENTRY_DSN = os.environ.get('SENTRY_DSN')
-ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
-IS_DOCKER = os.path.exists('/.dockerenv')
+from config import SENTRY_DSN, ENVIRONMENT, IS_DOCKER
 
 if SENTRY_DSN and ENVIRONMENT == 'production':
     sentry_sdk.init(

@@ -1,19 +1,13 @@
-import os
 from supabase import create_client, Client
 from typing import List, Dict, Optional
 from datetime import datetime
 import dateutil.parser
-from dotenv import load_dotenv
 import logging
 
+from config import ENVIRONMENT, SUPABASE_KEY, SUPABASE_URL
 from schemas import Book, FeedActivity
 
-load_dotenv()
 logger = logging.getLogger(__name__)
-
-ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 
 supabase: Optional[Client] = None
 

@@ -1,30 +1,23 @@
 import logging
 import sys
-import os
 import asyncio
-from dotenv import load_dotenv
 import dateutil.parser
 
+from config import GOODREADS_COOKIE, GOODREADS_USER_ID, ENVIRONMENT
 from utils import setup_logging, save_output_files_locally
 from katalog import Katalog
 import db_client
-
-load_dotenv()
-
-ENVIRONMENT = os.environ.get('ENVIRONMENT', 'dev')
 
 async def main():
     setup_logging() # Run the setup
     
     # Get secrets from environment
-    COOKIE = os.environ.get('GOODREADS_COOKIE')
-    USER_ID = os.environ.get('GOODREADS_USER_ID')
 
-    if not COOKIE or not USER_ID:
+    if not GOODREADS_COOKIE or not GOODREADS_USER_ID:
         logging.critical("GOODREADS_COOKIE or GOODREADS_USER_ID not set. Exiting.")
         return
 
-    scraper = Katalog(COOKIE, USER_ID)
+    scraper = Katalog(GOODREADS_COOKIE, GOODREADS_USER_ID)
 
     try:
         data = await scraper.scrape()
@@ -58,7 +51,7 @@ async def main():
                 if all_books:
                     # Add the user_id to each book record for the primary key
                     for book in all_books:
-                        book.user_id = USER_ID
+                        book.user_id = GOODREADS_USER_ID
                     db_client.upsert_books(all_books)
                 else:
                     logging.info("No books found in scrape data. Nothing to upsert.")

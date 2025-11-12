@@ -200,8 +200,9 @@ class Katalog:
                             # Date published
                             date_pub_elem = row.find('td', class_='field date_pub')
                             if date_pub_elem:
-                                date_text = date_pub_elem.text.strip()
-                                if date_text and date_text != '—':
+                                value_div = date_pub_elem.find('div', class_='value')
+                                if value_div:
+                                    date_text = value_div.text.strip()
                                     book['date_published'] = date_text
                             
                             # Date added
