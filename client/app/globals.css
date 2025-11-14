@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 24 24 27;
+    --foreground: 250 250 250;
+    --card: 39 39 42;
+    --card-foreground: 250 250 250;
+    --primary: 99 102 241;
+    --primary-foreground: 250 250 250;
+    --secondary: 139 92 246;
+    --secondary-foreground: 250 250 250;
+    --muted: 63 63 70;
+    --muted-foreground: 161 161 170;
+    --accent: 245 158 11;
+    --accent-foreground: 250 250 250;
+    --border: 63 63 70;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    /* Apply the CSS variable directly */
+    border-color: rgb(var(--border));
+  }
+  body {
+    /* Apply default Tailwind class for background.
+      Apply your CSS variable for the text color.
+    */
+    @apply bg-zinc-900;
+    color: rgb(var(--foreground));
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-zinc-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-500;
+}
