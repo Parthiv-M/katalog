@@ -42,7 +42,7 @@ const CustomRotatedLabels = ({ bars }: { bars: any }) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ReadingVelocity({ data }: { data: any }) {
   return (
-    <GraphWrapper>
+    <GraphWrapper title="Number of books per month">
       <ResponsiveBar
         enableLabel={false}
         isInteractive={false}

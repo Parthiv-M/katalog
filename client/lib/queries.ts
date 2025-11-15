@@ -1,9 +1,10 @@
+import { BOOKS_TABLE_NAME } from './constants';
 import { supabase } from './supabase';
 import { DashboardData, Book } from '@/types';
 
 export async function getDashboardData(userId?: string): Promise<DashboardData> {
   // Fetch all books from Supabase
-  let query = supabase.from('books').select('*');
+  let query = supabase.from(BOOKS_TABLE_NAME).select('*');
 
   if (userId) {
     query = query.eq('user_id', userId);
@@ -48,155 +49,283 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
 
 // Helper functions with actual implementation logic
 function calculateMonthlyReading(books: Book[]) {
-  // TODO: Implement actual logic based on date_read field
-  // Group books by month where date_read is not null
-  // This is placeholder data - replace with actual calculation
-  return [
-    { month: 'April 2025', count: 3 },
-    { month: 'May 2025', count: 4 },
-    { month: 'June 2025', count: 2 },
-    { month: 'July 2025', count: 5 },
-    { month: 'August 2025', count: 3 },
-    { month: 'September 2025', count: 4 },
-    { month: 'October 2025', count: 4 },
-    { month: 'November 2025', count: 2 },
-  ];
+  // Map to store counts: key "YYYY-MM", value: count
+  const monthMap = new Map<string, number>();
+
+  const readBooks = books.filter((book) => book.date_read);
+
+  for (const book of readBooks) {
+    try {
+      const readDate = new Date(book.date_read!);
+      const key = readDate.toISOString().slice(0, 7);
+
+      monthMap.set(key, (monthMap.get(key) || 0) + 1);
+    } catch (e) {
+      console.warn('Invalid date_read format:', book.date_read);
+    }
+  }
+
+  const sortedData = Array.from(monthMap.entries()).slice(0, 8).sort((a, b) =>
+    a[0].localeCompare(b[0])
+  );
+
+  return sortedData.map(([key, count]) => {
+    const date = new Date(`${key}-01T12:00:00Z`);
+    return {
+      month: date.toLocaleString('default', {
+        month: 'long',
+        year: 'numeric',
+      }),
+      count: count,
+    };
+  });
 }
 
 function calculateMonthlyPages(books: Book[]) {
-  // TODO: Implement actual logic based on date_read and num_pages
-  // Sum pages by month for books that have been read
+  // Map to store page counts: key "YYYY-MM", value: totalPages
+  const pageMap = new Map<string, number>();
+
+  const readBooks = books.filter(
+    (book) => book.date_read && book.num_pages && book.num_pages > 0
+  );
+
+  for (const book of readBooks) {
+    try {
+      const readDate = new Date(book.date_read!);
+      const key = readDate.toISOString().slice(0, 7);
+      const pages = book.num_pages!;
+
+      pageMap.set(key, (pageMap.get(key) || 0) + pages);
+    } catch (e) {
+      console.warn('Invalid date_read or num_pages format:', book.date_read);
+    }
+  }
+
+  // Get entries, sort by key (YYYY-MM)
+  const sortedData = Array.from(pageMap.entries()).slice(0, 6).sort((a, b) =>
+    a[0].localeCompare(b[0])
+  );
+
+  const lineData = sortedData.map(([key, pages]) => {
+    const date = new Date(`${key}-01T12:00:00Z`);
+    return {
+      x: date,
+      y: pages,
+    };
+  });
+
   return [
     {
-      "id": "data",
-      "data": [
-        { "x": "Apr", "y": 1200 },
-        { "x": "May", "y": 900 },
-        { "x": "Jun", "y": 1234 },
-        { "x": "Jul", "y": 1145 },
-        { "x": "Aug", "y": 1158 },
-        { "x": "Sep", "y": 947 },
-        { "x": "Oct", "y": 1201 },
-        { "x": "Nov", "y": 369 }
-      ]
-    }
-  ]
-
+      id: 'data',
+      data: lineData
+    },
+  ];
 }
 
 function calculateReadingTime(books: Book[]) {
-  // TODO: Calculate actual days between date_started and date_read
-  // Filter for books with both dates and num_pages
+  const plotData = [];
+
+  const validBooks = books.filter(
+    (book) =>
+      book.date_added &&
+      book.date_read
+  );
+
+  for (const book of validBooks) {
+    try {
+      const start = new Date(book.date_added!);
+      const read = new Date(book.date_read!);
+
+      // Set to midnight to just count days
+      start.setHours(0, 0, 0, 0);
+      read.setHours(0, 0, 0, 0);
+
+      const diffTime = read.getTime() - start.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      // +1 to be inclusive (e.g., start/finish same day is 1 day)
+      const daysToRead = diffDays + 1;
+
+      if (daysToRead > 0) {
+        plotData.push({
+          x: book.num_pages,
+          y: daysToRead,
+          title: book.title,
+        });
+      }
+
+      plotData.sort((a, b) => b.y - a.y)
+
+    } catch (e) {
+      console.warn('Invalid date_started or date_read format');
+    }
+  }
+
   return [
     {
-      "id": "Books",
-      "data": [
-        { "x": 450, "y": 30, "title": "Book 4" },
-        { "x": 310, "y": 25, "title": "Book 5" },
-        { "x": 300, "y": 12, "title": "Book 7" },
-        { "x": 350, "y": 7, "title": "Book 2" },
-        { "x": 250, "y": 6, "title": "Book 6" },
-        { "x": 200, "y": 5, "title": "Book 1" },
-        { "x": 150, "y": 1.5, "title": "Book 3" }
-      ]
-    }
+      id: 'Books',
+      data: plotData,
+    },
   ];
 }
 
 function calculateShelfComposition(books: Book[]) {
-  // TODO: Group by shelf field and calculate percentages
-  const total = books.length || 1;
-  const composition = {
-    'read': books.filter(b => b.shelf === 'read').length,
-    'to-read': books.filter(b => b.shelf === 'to-read').length,
-    'currently-reading': books.filter(b => b.shelf === 'currently-reading').length,
-  };
+  const shelfMap = new Map<string, number>();
+  shelfMap.set('read', 0);
+  shelfMap.set('to-read', 0);
+  shelfMap.set('currently-reading', 0);
+  let other = 0;
+  const otherName = 'Other'; // In case you want to group multiple other shelves
 
-  return {
-    "name": "library",
-    "children": [
-      {
-        "name": "Read",
-        "loc": 117,
-      },
-      {
-        "name": "To Be Read",
-        "loc": 89,
-      },
-      {
-        "name": "Currently Reading",
-        "loc": 2
-      }
-    ]
+  for (const book of books) {
+    if (book.shelf === 'read') {
+      shelfMap.set('read', shelfMap.get('read')! + 1);
+    } else if (book.shelf === 'to_read') {
+      shelfMap.set('to-read', shelfMap.get('to-read')! + 1);
+    } else if (book.shelf === 'currently_reading') {
+      shelfMap.set('currently-reading', shelfMap.get('currently-reading')! + 1);
+    } else if (book.shelf) {
+      other++;
+    }
   }
 
+  const childrenData = [
+    { name: 'Read', loc: shelfMap.get('read')! },
+    { name: 'To Be Read', loc: shelfMap.get('to-read')! },
+    { name: 'Currently Reading', loc: shelfMap.get('currently-reading')! },
+  ];
+
+  if (other > 0) {
+    childrenData.push({ name: otherName, loc: other });
+  }
+
+  const validChildren = childrenData.filter((c) => c.loc > 0);
+  let maxLoc = 0;
+  let maxIndex = -1;
+  let totalLoc = 0;
+
+  validChildren.forEach((child, index) => {
+    totalLoc += child.loc;
+    if (child.loc > maxLoc) {
+      maxLoc = child.loc;
+      maxIndex = index;
+    }
+  });
+
+  if (maxIndex === -1) {
+    // No books at all, return empty state
+    return { name: 'library', children: [] };
+  }
+
+  const sumOfOthers = totalLoc - maxLoc;
+
+  const scaledChildren = validChildren.map((child, index) => {
+    let scaledLoc = child.loc; // Default to original value
+
+    if (index === maxIndex && maxLoc > sumOfOthers) {
+      scaledLoc = sumOfOthers; // Cap its value at the sum of all others
+    }
+
+    return {
+      ...child,
+      scaledLoc: scaledLoc,
+    };
+  });
+
+  return {
+    name: 'library',
+    children: scaledChildren,
+  };
 }
 
 function calculateTopAuthors(books: Book[]) {
-  // TODO: Group by author, count books, sort by count, take top 5
-  // Use actual author field from books
-  return [
-    { author: 'Author name 1', count: 10 },
-    { author: 'Author name 2', count: 3 },
-    { author: 'Author name 3', count: 4 },
-    { author: 'Author name 4', count: 8 },
-    { author: 'Author name 5', count: 5 },
-  ];
+  const authorMap = new Map<string, number>();
+
+  const validBooks = books.filter((book) => book.author);
+
+  for (const book of validBooks) {
+    const author = book.author!;
+    authorMap.set(author, (authorMap.get(author) || 0) + 1);
+  }
+
+  // Convert map to array
+  const authorCounts = Array.from(authorMap.entries());
+
+  // Sort by count descending
+  authorCounts.sort((a, b) => b[1] - a[1]);
+
+  // Take top 5 and map to final format
+  return authorCounts.slice(0, 5).map(([author, count]) => ({
+    author,
+    count,
+  }));
+}
+
+// Helper for bucketing community ratings
+function getCommunityBucket(rating: number): string | null {
+  if (rating < 0 || rating > 5) return null; // Invalid data
+  if (rating <= 1) return '0-1';
+  if (rating <= 2) return '1-2';
+  if (rating <= 3) return '2-3';
+  if (rating <= 4) return '3-4';
+  if (rating <= 5) return '4-5';
+  return null;
 }
 
 function calculateRatingHeatmap(books: Book[]) {
-  // TODO: Group by rating (user) and avg_rating (community) combinations
-  // Create buckets for community ratings (0-1, 1-2, etc.)
-  return [
-    {
-      "id": "1",
-      "data": [
-        { "x": "0-1", "y": 10 },
-        { "x": "1-2", "y": 1 },
-        { "x": "2-3", "y": 15 },
-        { "x": "3-4", "y": 8 },
-        { "x": "4-5", "y": 15 }
-      ]
-    },
-    {
-      "id": "2",
-      "data": [
-        { "x": "0-1", "y": 6 },
-        { "x": "1-2", "y": 9 },
-        { "x": "2-3", "y": 2 },
-        { "x": "3-4", "y": 2 },
-        { "x": "4-5", "y": 15 }
-      ]
-    },
-    {
-      "id": "3",
-      "data": [
-        { "x": "0-1", "y": 1 },
-        { "x": "1-2", "y": 1 },
-        { "x": "2-3", "y": 13 },
-        { "x": "3-4", "y": 16 },
-        { "x": "4-5", "y": 8 }
-      ]
-    },
-    {
-      "id": "4",
-      "data": [
-        { "x": "0-1", "y": 13 },
-        { "x": "1-2", "y": 0 },
-        { "x": "2-3", "y": 1 },
-        { "x": "3-4", "y": 10 },
-        { "x": "4-5", "y": 4 }
-      ]
-    },
-    {
-      "id": "5",
-      "data": [
-        { "x": "0-1", "y": 1 },
-        { "x": "1-2", "y": 5 },
-        { "x": "2-3", "y": 8 },
-        { "x": "3-4", "y": 18 },
-        { "x": "4-5", "y": 2 }
-      ]
+  // `Map<UserRating, Map<CommunityBucket, Count>>`
+  const heatmapData = new Map<number, Map<string, number>>();
+  // Initialize the 5x5 grid
+  for (let i = 1; i <= 5; i++) {
+    const bucketMap = new Map<string, number>();
+    bucketMap.set('0-1', 0);
+    bucketMap.set('1-2', 0);
+    bucketMap.set('2-3', 0);
+    bucketMap.set('3-4', 0);
+    bucketMap.set('4-5', 0);
+    heatmapData.set(i, bucketMap);
+  }
+
+  const validBooks = books.filter(
+    (book) =>
+      book.rating != null && // User rating
+      book.avg_rating != null // Community rating
+  );
+
+  for (const book of validBooks) {
+    const userRating = book.rating!;
+    // avg_rating is 'numeric' which can be a string, so parse it
+    const communityRating = parseFloat(String(book.avg_rating));
+
+    // Ensure user rating is valid
+    if (userRating < 1 || userRating > 5 || isNaN(communityRating)) {
+      continue;
     }
-  ];
+
+    const bucket = getCommunityBucket(communityRating);
+
+    if (bucket) {
+      try {
+        const userRatingMap = heatmapData.get(userRating)!;
+        userRatingMap.set(bucket, userRatingMap.get(bucket)! + 1);
+      } catch (e) {
+        console.warn('Error processing rating:', userRating, bucket);
+      }
+    }
+  }
+
+  // Convert the Map into the Nivo array format
+  const nivoData = [];
+  for (const [userRating, bucketMap] of heatmapData.entries()) {
+    const seriesData = {
+      id: String(userRating), // '1', '2', '3', '4', '5'
+      data: Array.from(bucketMap.entries()).map(([bucket, count]) => ({
+        x: bucket, // '0-1', '1-2', ...
+        y: count,
+      })),
+    };
+    nivoData.push(seriesData);
+  }
+
+  return nivoData;
 }

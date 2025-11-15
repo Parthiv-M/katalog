@@ -7,10 +7,10 @@ import { GRAPH_THEME } from "@/lib/constants";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ReadingTime({ data }: { data: any }) {
     return (
-        <GraphWrapper>
-            <ResponsiveScatterPlot /* or ScatterPlot for fixed dimensions */
+        <GraphWrapper title="Reading time v/s number of pages">
+            <ResponsiveScatterPlot
                 data={data}
-                margin={{ top: 30, right: 35, bottom: 35, left: 35 }}
+                margin={{ top: 30, right: 30, bottom: 45, left: 45 }}
                 axisBottom={{ legend: 'Pages', legendOffset: -10 }}
                 axisLeft={{ legend: 'Days', legendOffset: 10 }}
                 yScale={{

@@ -7,8 +7,8 @@ import { GRAPH_THEME } from "@/lib/constants";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function TopAuthors({ data }: { data: any }) {
     return (
-        <GraphWrapper>
-            <ResponsiveBar /* or Bar for fixed dimensions */
+        <GraphWrapper title="Your top authors">
+            <ResponsiveBar
                 layout="horizontal"
                 isInteractive={false}
                 label={d => `${d.indexValue}`}
@@ -27,7 +27,6 @@ export default function TopAuthors({ data }: { data: any }) {
                 }}
                 padding={0.1}
                 enableTotals={true}
-                enableGridY={false}
                 colors={{ scheme: "set2" }}
                 theme={GRAPH_THEME}
                 layers={[
