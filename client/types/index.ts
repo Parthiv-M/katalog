@@ -57,3 +57,42 @@ export interface DashboardData {
   topAuthors: AuthorCount[];
   ratingHeatmap: RatingCell[];
 }
+
+export interface Feed {
+  id?: number;
+  timestamp?: string | null;
+  user_name?: string | null;
+  user_url?: string | null;
+  action?: string | null;
+  header_text?: string | null;
+  book_title?: string | null;
+  book_url?: string | null;
+  author?: string | null;
+  author_url?: string | null;
+  rating?: number | null;
+  book_description?: string | null;
+  time_ago?: string | null;
+}
+
+export interface ActionBreakdown {
+  action: string;
+  [bookTitle: string]: number | string;
+}
+
+export interface CalendarDay {
+  day: string; // "YYYY-MM-DD"
+  value: number;
+}
+
+export interface ActivityStream {
+  month: string; // "YYYY-MM"
+  [action: string]: number | string;
+}
+
+export interface FeedData {
+  actionBreakdown: ActionBreakdown[];
+  calendarData: CalendarDay[];
+  networkActivity: ActivityStream[];
+  top10BookTitles: string[];
+  feedMessageList: Feed[]
+}

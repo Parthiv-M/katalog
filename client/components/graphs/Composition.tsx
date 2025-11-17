@@ -8,7 +8,7 @@ import { ResponsiveTreeMap } from "@nivo/treemap";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function Composition({ data }: { data: any }) {
     return (
-        <GraphWrapper title="Your Bookshelf">
+        <GraphWrapper title="Your Bookshelf" isAlwaysTitle>
             <ResponsiveTreeMap
                 isInteractive={false}
                 data={data}

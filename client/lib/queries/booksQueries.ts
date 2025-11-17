@@ -1,5 +1,5 @@
-import { BOOKS_TABLE_NAME } from './constants';
-import { supabase } from './supabase';
+import { BOOKS_TABLE_NAME } from '../constants';
+import { supabase } from '../supabase';
 import { DashboardData, Book } from '@/types';
 
 export async function getDashboardData(userId?: string): Promise<DashboardData> {
