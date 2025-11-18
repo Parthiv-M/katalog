@@ -22,20 +22,25 @@ export interface MonthlyReading {
 }
 
 export interface MonthlyPages {
-  month: string;
-  pages: number;
+  id: string;
+  data: { x: Date; y: number; }[]
 }
 
-export interface ReadingTime {
-  pages: number;
-  daysToRead: number;
-  title: string;
-}
+export interface ReadingTime { 
+  id: string; 
+  data: { 
+    x: number | null | undefined;
+    y: number; title: string | null | undefined; 
+  }[];
+};
 
-export interface ShelfComposition {
-  shelf: string;
-  count: number;
-  percentage: number;
+export interface ShelfComposition { 
+  name: string; 
+  children: {
+    scaledLoc: number;
+    name: string;
+    loc: number; 
+  }[];
 }
 
 export interface AuthorCount {
@@ -44,16 +49,16 @@ export interface AuthorCount {
 }
 
 export interface RatingCell {
-  userRating: number;
-  communityRating: string;
-  count: number;
+  id: string;
+  data: { x: string; y: number; }[];
 }
+
 
 export interface DashboardData {
   monthlyReading: MonthlyReading[];
   monthlyPages: MonthlyPages[];
   readingTimeData: ReadingTime[];
-  shelfComposition: ShelfComposition[];
+  shelfComposition: ShelfComposition;
   topAuthors: AuthorCount[];
   ratingHeatmap: RatingCell[];
 }
