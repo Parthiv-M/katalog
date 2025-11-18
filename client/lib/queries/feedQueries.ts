@@ -1,10 +1,10 @@
 import { ActionBreakdown, ActivityStream, CalendarDay, Feed, FeedData } from "@/types";
 import { supabase } from "../supabase";
-import { ALL_POSSIBLE_ACTIONS } from "../constants";
+import { ALL_POSSIBLE_ACTIONS, FEED_TABLE_NAME } from "../constants";
 
 export async function getFeedData(userId?: string): Promise<FeedData> {
     const { data: feed, error } = await supabase
-        .from('feed_dev')
+        .from(FEED_TABLE_NAME)
         .select('action, book_title, timestamp')
         .order('timestamp', { ascending: false })
         .limit(2000);
@@ -38,7 +38,7 @@ export async function getFeedData(userId?: string): Promise<FeedData> {
     const networkActivity = calculateNetworkActivity(feedData, allActionsForCharts);
 
     const { data: feedMessages, error: feedMessageerror } = await supabase
-        .from('feed_dev')
+        .from(FEED_TABLE_NAME)
         .select('action, header_text, book_title, timestamp')
         .order('timestamp', { ascending: false })
         .limit(10);
