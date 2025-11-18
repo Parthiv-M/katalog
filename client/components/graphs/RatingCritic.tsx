@@ -3,27 +3,17 @@ import { GRAPH_THEME } from '@/lib/constants';
 import { COLORS } from '@/lib/utils'
 import { ResponsiveHeatMap } from '@nivo/heatmap'
 import GraphWrapper from './GraphWrapper';
+import CustomTooltip from './CustomTooltip';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const MyCustomHeatmapTooltip = ({ cell }: { cell: any }) => {
+const HeatMapTooltip = ({cell}: {cell: any}) => {
   return (
-    <div
-      style={{
-        width: '220px',
-        background: '#00000060',
-        backdropFilter: 'blur(5px)',
-        padding: '9px 12px',
-        border: '1px solid #000',
-        borderRadius: '4px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-      }}
-    >
-      <strong>Your rating:</strong> {cell.serieId}
-      <br />
-      <strong>Community rating:</strong> {cell.data.x}
-    </div>
-  );
-};
+    <CustomTooltip>
+      <p>You rated it {cell.serieId}</p>
+      <p>Others rated it {cell.data.x}</p>
+    </CustomTooltip>
+  )
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getLabelColor = (datum: any) => {
@@ -52,7 +42,9 @@ export default function RatingCritic({ data }: { data: any }) {
         layers={[
           "cells"
         ]}
-        tooltip={MyCustomHeatmapTooltip}
+        tooltip={
+          ({ cell }) => <HeatMapTooltip cell={cell}/>
+        }
         theme={GRAPH_THEME}
       />
     </GraphWrapper>

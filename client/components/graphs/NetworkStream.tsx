@@ -3,6 +3,7 @@
 import { ResponsiveStream } from "@nivo/stream";
 import GraphWrapper from "./GraphWrapper"
 import { GRAPH_THEME } from "@/lib/constants"
+import { COLORS } from "@/lib/utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function NetworkStream({ data }: { data: any }) {
@@ -20,7 +21,16 @@ export default function NetworkStream({ data }: { data: any }) {
                 dotSize={8}
                 dotBorderWidth={2}
                 dotBorderColor={{ from: 'color', modifiers: [['darker', 0.7]] }}
-                theme={GRAPH_THEME}
+                theme={{
+                    ...GRAPH_THEME,
+                    tooltip: {
+                        container: {
+                            background: COLORS.surface,
+                            color: COLORS.text,
+                            fontSize: '0.8rem'
+                        }
+                    }
+                }}
                 axisBottom={null}
                 colors={{ scheme: 'yellow_green_blue' }}
             />

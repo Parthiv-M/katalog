@@ -4,6 +4,14 @@ import { ResponsiveCalendar } from "@nivo/calendar";
 import GraphWrapper from "./GraphWrapper";
 import { COLORS } from "@/lib/utils";
 import { GRAPH_THEME } from "@/lib/constants";
+import CustomTooltip from "./CustomTooltip";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const CalendarTooltip = ({ node }: { node: any }) => {
+    return (
+        <CustomTooltip width="w-48">{node.value} updates on {node.day}</CustomTooltip>
+    )
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function FeedCalendar({ data }: { data: any }) {
@@ -33,6 +41,7 @@ export default function FeedCalendar({ data }: { data: any }) {
                         itemDirection: 'right-to-left'
                     }
                 ]}
+                tooltip={(node) => <CalendarTooltip node={node}/>}
             />
         </GraphWrapper>
     )

@@ -3,6 +3,7 @@
 import GraphWrapper from "./GraphWrapper";
 import { ResponsiveScatterPlot } from '@nivo/scatterplot'
 import { GRAPH_THEME } from "@/lib/constants";
+import CustomTooltip from "./CustomTooltip";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function ReadingTime({ data }: { data: any }) {
@@ -22,6 +23,9 @@ export default function ReadingTime({ data }: { data: any }) {
                 }}
                 colors={{ scheme: "set2" }}
                 theme={GRAPH_THEME}
+                tooltip={({
+                    node
+                }) => <CustomTooltip>{node.formattedY} days for {node.formattedX} pages</CustomTooltip>}
                 layers={[
                     "grid",
                     "axes",
