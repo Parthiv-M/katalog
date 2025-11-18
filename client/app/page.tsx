@@ -47,8 +47,7 @@ export default async function Page() {
                     <Card>{null}</Card>
                     <Card classes='col-span-2'><FeedCalendar data={feed.calendarData}/></Card>
                     <Card>{null}</Card>
-                    <Card classes='col-span-2'><NetworkStream data={feed.networkActivity} /></Card>
-                    <Card>{null}</Card>
+                    <Card classes='col-span-3'><NetworkStream data={feed.networkActivity} /></Card>
                 </div>
             </div>
         </div>

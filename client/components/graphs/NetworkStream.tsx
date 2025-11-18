@@ -14,13 +14,23 @@ export default function NetworkStream({ data }: { data: any }) {
             <ResponsiveStream
                 data={data}
                 keys={barKeys}
-                margin={{ top: 20, right: 0, bottom: 20, left: 40 }}
+                margin={{ top: 20, right: 180, bottom: 20, left: 40 }}
                 enableGridX={true}
                 enableGridY={true}
                 borderColor={{ theme: 'background' }}
                 dotSize={8}
                 dotBorderWidth={2}
                 dotBorderColor={{ from: 'color', modifiers: [['darker', 0.7]] }}
+                legends={[
+                    {
+                        anchor: 'right',
+                        direction: 'column',
+                        translateX: 100,
+                        itemsSpacing: 15,
+                        itemWidth: 80,
+                        itemHeight: 16,
+                    }
+                ]}
                 theme={{
                     ...GRAPH_THEME,
                     tooltip: {
