@@ -16,38 +16,50 @@ export default async function Page() {
     const data = await getDashboardData();
     const feed = await getFeedData();
     return (
-        <div className="h-screen w-screen overflow-x-hidden">
-            {/* first page */}
-            <div className="h-screen w-screen">
-                <div className="h-full grid grid-cols-3 grid-rows-3 gap-3 p-3">
-                    <Card>
-                        <ReadingVelocity data={data.monthlyReading} />
-                    </Card>
-                    <Card>
-                        <RatingCritic data={data.ratingHeatmap} />
-                    </Card>
-                    <Card>
-                        <Composition data={data.shelfComposition} />
-                    </Card>
-                    <Card classes="row-span-2">
+        <div className="min-h-screen w-full overflow-x-hidden bg-zinc-900">
+            {/* first page: Dashboard */}
+            <div className="lg:h-screen w-full">
+                <div className="h-full grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-3 gap-3 p-3 auto-rows-[22rem] lg:auto-rows-auto">
+                    <Card><ReadingVelocity data={data.monthlyReading} /></Card>
+                    <Card><RatingCritic data={data.ratingHeatmap} /></Card>
+                    <Card><Composition data={data.shelfComposition} /></Card>
+                    
+                    <Card classes="lg:row-span-2">
                         <ReadingTime data={data.readingTimeData} />
                     </Card>
-                    <div className="grid grid-rows-2 gap-3 col-span-2 row-span-2">
+                    
+                    {/* Nested grid for Page Velocity and Authors */}
+                    <div className="grid grid-cols-1 lg:grid-cols-1 grid-rows-2 gap-3 lg:col-span-2 lg:row-span-2 auto-rows-[22rem] lg:auto-rows-auto">
                         <PageVelocity data={data.monthlyPages} />
                         <Card><TopAuthors data={data.topAuthors} /></Card>
                     </div>
                 </div>
             </div>
-            {/* second page */}
-            <div className="h-screen w-screen">
-                <div className="h-full grid grid-cols-3 grid-rows-4 gap-3 p-3">
-                    <Card classes='row-span-2'><ActivityList data={feed.feedMessageList}/></Card>
-                    <Card classes='row-span-2'><FeedBooks data={feed.actionBreakdown}/></Card>
-                    <Card>{null}</Card>
-                    <Card>{null}</Card>
-                    <Card classes='col-span-2'><FeedCalendar data={feed.calendarData}/></Card>
-                    <Card>{null}</Card>
-                    <Card classes='col-span-3'><NetworkStream data={feed.networkActivity} /></Card>
+
+            {/* second page: Feed */}
+            <div className="lg:h-screen w-full">
+                <div className="h-full grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-4 gap-3 p-3 auto-rows-[22rem] lg:auto-rows-auto">
+                    <Card classes='lg:row-span-2'>
+                        <ActivityList data={feed.feedMessageList}/>
+                    </Card>
+                    
+                    <Card classes='lg:row-span-2'>
+                        <FeedBooks data={feed.actionBreakdown}/>
+                    </Card>
+                    
+                    {/* Spacer Cards: Hidden on mobile, visible on Desktop */}
+                    <Card classes="hidden lg:block">{null}</Card>
+                    <Card classes="hidden lg:block">{null}</Card>
+                    
+                    <Card classes='lg:col-span-2'>
+                        <FeedCalendar data={feed.calendarData}/>
+                    </Card>
+                    
+                    <Card classes="hidden lg:block">{null}</Card>
+                    
+                    <Card classes='lg:col-span-3'>
+                        <NetworkStream data={feed.networkActivity} />
+                    </Card>
                 </div>
             </div>
         </div>
