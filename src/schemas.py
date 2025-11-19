@@ -36,3 +36,16 @@ class FeedActivity(BaseModel):
     time_ago: Optional[str] = None
     rating: Optional[int] = None
     book_description: Optional[str] = None
+
+class ReadingChallenge(BaseModel):
+    """
+    Pydantic schema for a reading challenge.
+    """
+    year: int
+    user_id: str
+    goal: int
+    books_completed: int
+    percentage: Optional[float] = None
+    books_ahead: Optional[float] = None
+    books_behind: Optional[float] = None
+    updated_at: Optional[str] = None

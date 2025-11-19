@@ -446,7 +446,7 @@ class Katalog:
                             # List of action texts that might be inside the link
                             action_texts = ('wants to read', 'is currently reading', 
                                               'started reading', 'finished reading', 
-                                              'has read', 'rated', 'reviewed', 'added')
+                                              'has read', 'rated', 'reviewed', 'added', 'made progress on')
 
                             # If the link text is an action, parse name from URL
                             if user_text.lower() in action_texts:
@@ -460,7 +460,6 @@ class Katalog:
                                 else:
                                     activity['user_name'] = "Unknown" # Fallback
                             else:
-                                # This is the old, working logic
                                 activity['user_name'] = user_text
                             
                             activity['user_url'] = user_url
@@ -481,6 +480,7 @@ class Katalog:
                                     if width_match: activity['rating'] = round(int(width_match.group(1)) / 20)
                             elif 'reviewed' in header_text: activity['action'] = 'reviewed'
                             elif 'added' in header_text: activity['action'] = 'added_book'
+                            elif 'made progress on' in header_text: activity['action'] = 'progress'
                             else: activity['action'] = 'other'
                             activity['header_text'] = header_text[:200]
                         

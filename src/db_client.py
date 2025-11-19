@@ -5,7 +5,7 @@ import dateutil.parser
 import logging
 
 from config import ENVIRONMENT, SUPABASE_KEY, SUPABASE_URL
-from schemas import Book, FeedActivity
+from schemas import Book, FeedActivity, ReadingChallenge
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ supabase: Optional[Client] = None
 
 BOOKS_TABLE_NAME = 'books'
 FEED_TABLE_NAME = 'feed'
+CHALLENGE_TABLE_NAME = 'reading_challenges' if ENVIRONMENT == 'production' else 'reading_challenges_dev'
 
 if ENVIRONMENT != 'production':
     BOOKS_TABLE_NAME = 'books_dev'
@@ -123,3 +124,23 @@ def insert_feed_items(feed_records: List[FeedActivity]):
              logger.warning("Some feed items were duplicates and were ignored, as expected.")
         else:
             logger.exception("Error inserting feed data: %s", e)
+
+def upsert_reading_challenge(challenge: ReadingChallenge):
+    """
+    Upserts the reading challenge status for the current year.
+    """
+    client = get_db_client()
+    if not client:
+        return
+
+    try:
+        data = challenge.model_dump(exclude_none=True)
+        response = client.table(CHALLENGE_TABLE_NAME).upsert(data).execute()
+        
+        if response.data:
+            logger.info("Successfully updated reading challenge for %s.", challenge.year)
+        else:
+            logger.warning("Supabase challenge upsert returned no data: %s", response.error)
+
+    except Exception as e:
+        logger.exception("Error upserting reading challenge: %s", e)
