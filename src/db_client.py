@@ -14,6 +14,7 @@ supabase: Optional[Client] = None
 BOOKS_TABLE_NAME = 'books'
 FEED_TABLE_NAME = 'feed'
 CHALLENGE_TABLE_NAME = 'reading_challenges' if ENVIRONMENT == 'production' else 'reading_challenges_dev'
+METADATA_TABLE_NAME = 'metadata' if ENVIRONMENT == 'production' else 'metadata_dev'
 
 if ENVIRONMENT != 'production':
     BOOKS_TABLE_NAME = 'books_dev'
@@ -144,3 +145,19 @@ def upsert_reading_challenge(challenge: ReadingChallenge):
 
     except Exception as e:
         logger.exception("Error upserting reading challenge: %s", e)
+
+def set_system_metadata(key: str, value: str):
+    """
+    Updates a key-value pair in the metadata table.
+    """
+    client = get_db_client()
+    if not client:
+        return
+
+    try:
+        # Simple upsert: if key exists, update value; if not, insert.
+        data = {"key": key, "value": value}
+        client.table(METADATA_TABLE_NAME).upsert(data).execute()
+        logger.info("Updated system metadata: %s", key)
+    except Exception as e:
+        logger.error("Error updating system metadata: %s", e)

@@ -2,6 +2,7 @@ import logging
 import sys
 import asyncio
 import dateutil.parser
+from datetime import datetime, timezone, timedelta
 
 from config import GOODREADS_COOKIE, GOODREADS_USER_ID, ENVIRONMENT
 from utils import setup_logging, save_output_files_locally
@@ -85,6 +86,16 @@ async def main():
                     db_client.upsert_reading_challenge(challenge_obj)
                 except Exception as e:
                     logging.error(f"Failed to process reading challenge data: {e}")
+
+            try:
+                current_time = datetime.now(timezone.utc)
+                db_client.set_system_metadata("last_refreshed", current_time.isoformat())
+
+                next_scrape = current_time + timedelta(days=3)
+                db_client.set_system_metadata("next_scrape", next_scrape.isoformat())
+
+            except Exception as e:
+                logging.warning(f"Could not update last_refreshed or next_scrape time: {e}")
                 
             logging.info("Supabase data sync complete.")
             
