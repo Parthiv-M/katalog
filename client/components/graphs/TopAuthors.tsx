@@ -7,7 +7,7 @@ import { GRAPH_THEME } from "@/lib/constants";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function TopAuthors({ data }: { data: any }) {
     return (
-        <GraphWrapper title="Your top authors">
+        <GraphWrapper title="Your top authors" isAlwaysTitle={false}>
             <ResponsiveBar
                 layout="horizontal"
                 isInteractive={false}

@@ -16,7 +16,7 @@ const CalendarTooltip = ({ node }: { node: any }) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function FeedCalendar({ data }: { data: any }) {
     return (
-        <GraphWrapper title="Network activity">
+        <GraphWrapper title="Network activity" isAlwaysTitle={false}>
             <ResponsiveCalendar
                 data={data}
                 from={data[data.length - 1].day}
