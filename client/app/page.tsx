@@ -12,6 +12,7 @@ import FeedCalendar from '@/components/graphs/Calendar';
 import NetworkStream from '@/components/graphs/NetworkStream';
 import ActivityList from '@/components/ui/ActivityList';
 import StatusBar from '@/components/ui/StatusBar';
+import ChallengeTile from '@/components/ui/ChallengeTile';
 
 export default async function Page() {
     const data = await getDashboardData();
@@ -49,7 +50,7 @@ export default async function Page() {
                     </Card>
                     
                     {/* Spacer Cards: Hidden on mobile, visible on Desktop */}
-                    <Card classes="hidden lg:block">{null}</Card>
+                    <Card classes="hidden lg:block"><ChallengeTile /></Card>
                     <Card classes="hidden lg:block">{null}</Card>
                     
                     <Card classes='lg:col-span-2'>

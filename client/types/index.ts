@@ -101,3 +101,14 @@ export interface FeedData {
   top10BookTitles: string[];
   feedMessageList: Feed[]
 }
+
+export interface ReadingChallenge {
+  year: number;
+  user_id: string;
+  goal: number;
+  books_completed: number;
+  percentage: number;
+  books_ahead?: number;
+  books_behind?: number;
+  updated_at?: string;
+}

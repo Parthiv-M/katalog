@@ -18,6 +18,7 @@ export const IS_PROD: boolean = process.env.ENVIRONMENT === "production";
 
 export const BOOKS_TABLE_NAME = IS_PROD ? "books" : "books_dev";
 export const FEED_TABLE_NAME = IS_PROD ? "feed" : "feed_dev";
+export const CHALLENGES_TABLE_NAME = IS_PROD ? "reading_challenges" : "reading_challenges_dev";
 
 export const ACTION_WANTS_TO_READ = "wants_to_read";
 export const ACTION_STARTED_READING = "started_reading";
