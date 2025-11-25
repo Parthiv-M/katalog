@@ -20,7 +20,7 @@ export default async function Page() {
     return (
         <div className="h-screen w-full overflow-y-scroll overflow-x-hidden bg-zinc-900 snap-y snap-mandatory scroll-smooth">
             {/* first page: Dashboard */}
-            <div className="lg:h-screen w-full snap-start shrink-0">
+            <div className="lg:h-screen px-48 snap-start shrink-0">
                 <div className="h-full grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-3 gap-3 p-3 auto-rows-[22rem] lg:auto-rows-auto">
                     <Card><ReadingVelocity data={data.monthlyReading} /></Card>
                     <Card><RatingCritic data={data.ratingHeatmap} /></Card>
@@ -39,7 +39,7 @@ export default async function Page() {
             </div>
 
             {/* second page: Feed */}
-            <div className="lg:h-screen w-full bg-zinc-800/40 snap-start shrink-0">
+            <div className="lg:h-screen px-48 w-full bg-zinc-800/40 snap-start shrink-0">
                 <div className="h-full grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-4 gap-3 p-3 auto-rows-[22rem] lg:auto-rows-auto">
                     <Card classes='lg:row-span-2'>
                         <ActivityList data={feed.feedMessageList}/>
