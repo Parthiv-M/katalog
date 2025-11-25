@@ -11,7 +11,7 @@ export default async function StatusBar() {
                 <div className="h-2 w-2 bg-red-200 animate-pulse rounded-full mr-2"></div>
                 <p>Last deployed on {formatToKatalogDate(lastUpdated)}</p>
             </div>
-            <p>Next scraper run at {formatToKatalogDate(nextScrape)}</p>
+            <p>Next scraper run on {formatToKatalogDate(nextScrape)}</p>
         </div>
     )
 }
