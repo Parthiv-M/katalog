@@ -18,7 +18,5 @@ export async function getChallengeData(userId?: string): Promise<ReadingChalleng
         throw new Error('Failed to fetch reading challenge data');
     }
 
-    console.log(data);
-
     return data[0] as ReadingChallenge;
 }

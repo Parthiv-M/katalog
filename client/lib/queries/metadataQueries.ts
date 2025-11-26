@@ -10,7 +10,8 @@ export async function getLastUpdated(): Promise<string | null> {
     .single();
 
   if (error) return null;
-  return data?.value || null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data as any)?.value || null;
 }
 
 export async function getNextScrape(): Promise<string | null> {
@@ -21,5 +22,6 @@ export async function getNextScrape(): Promise<string | null> {
     .single();
 
   if (error) return null;
-  return data?.value || null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data as any)?.value || null;
 }
