@@ -1,10 +1,9 @@
+import { METADATA_TABLE_NAME } from "../constants";
 import { supabase } from "../supabase";
-
-const METADATA_TABLE = process.env.ENVIRONMENT === 'production' ? 'metadata' : 'metadata_dev';
 
 export async function getLastUpdated(): Promise<string | null> {
   const { data, error } = await supabase
-    .from(METADATA_TABLE)
+    .from(METADATA_TABLE_NAME)
     .select('value')
     .eq('key', 'last_refreshed')
     .single();
@@ -16,7 +15,7 @@ export async function getLastUpdated(): Promise<string | null> {
 
 export async function getNextScrape(): Promise<string | null> {
   const { data, error } = await supabase
-    .from(METADATA_TABLE)
+    .from(METADATA_TABLE_NAME)
     .select('value')
     .eq('key', 'next_scrape')
     .single();
