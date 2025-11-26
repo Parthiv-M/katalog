@@ -8,6 +8,8 @@ export async function getLastUpdated(): Promise<string | null> {
     .eq('key', 'last_refreshed')
     .single();
 
+  console.log(METADATA_TABLE_NAME, "; ", data);
+
   if (error) return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as any)?.value || null;
@@ -21,6 +23,7 @@ export async function getNextScrape(): Promise<string | null> {
     .single();
 
   if (error) return null;
+  console.log(METADATA_TABLE_NAME, "; ", data);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as any)?.value || null;
 }
