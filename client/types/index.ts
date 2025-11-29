@@ -61,6 +61,7 @@ export interface DashboardData {
   shelfComposition: ShelfComposition;
   topAuthors: AuthorCount[];
   ratingHeatmap: RatingCell[];
+  summary: LibrarySummary
 }
 
 export interface Feed {
@@ -111,4 +112,12 @@ export interface ReadingChallenge {
   books_ahead?: number;
   books_behind?: number;
   updated_at?: string;
+}
+
+export interface LibrarySummary {
+  totalBooksRead: number;
+  totalPagesRead: number;
+  tbrCount: number;
+  currentlyReading: Book | null;
+  lastRead: Book | null;
 }

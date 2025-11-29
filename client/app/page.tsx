@@ -14,10 +14,18 @@ import ActivityList from '@/components/ui/ActivityList';
 import StatusBar from '@/components/ui/StatusBar';
 import ChallengeTile from '@/components/ui/ChallengeTile';
 import Katalog from '@/components/ui/Logo';
+import ShareCard from '@/components/ui/ShareCard';
+import { ReadingChallenge } from '@/types';
+import { getChallengeData } from '@/lib/queries/challengeQueries';
 
 export default async function Page() {
     const data = await getDashboardData();
     const feed = await getFeedData();
+    const challenge: ReadingChallenge = await getChallengeData();
+    const topAuthorName = data.topAuthors && data.topAuthors.length > 0 
+        ? data.topAuthors[0].author
+        : 'Unknown';
+
     return (
         <div className="h-screen w-full overflow-y-scroll overflow-x-hidden bg-zinc-900 lg:snap-y lg:snap-mandatory scroll-smooth">
             <Katalog />
@@ -51,15 +59,14 @@ export default async function Page() {
                         <FeedBooks data={feed.actionBreakdown}/>
                     </Card>
                     
-                    {/* Spacer Cards: Hidden on mobile, visible on Desktop */}
-                    <Card classes="hidden lg:block"><ChallengeTile /></Card>
-                    <Card classes="hidden lg:block">{null}</Card>
+                    <Card classes="lg:block"><ChallengeTile /></Card>
+                    <Card classes="lg:order-none order-last row-span-2 lg:block">
+                        <ShareCard summary={data.summary} topAuthor={topAuthorName} percentage={challenge.percentage} />
+                    </Card>
                     
                     <Card classes='lg:col-span-2'>
                         <FeedCalendar data={feed.calendarData}/>
                     </Card>
-                    
-                    <Card classes="hidden lg:block">{null}</Card>
                     
                     <Card classes='lg:col-span-3'>
                         <NetworkStream data={feed.networkActivity} />

@@ -1,6 +1,6 @@
 import { BOOKS_TABLE_NAME } from '../constants';
 import { supabase } from '../supabase';
-import { DashboardData, Book } from '@/types';
+import { DashboardData, Book, LibrarySummary } from '@/types';
 
 export async function getDashboardData(userId?: string): Promise<DashboardData> {
   // Fetch all books from Supabase
@@ -17,7 +17,7 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
     throw new Error('Failed to fetch dashboard data');
   }
 
-  const booksData = books || [];
+  const booksData = (books as Book[]) || [];
 
   // Monthly reading velocity (books finished per month)
   const monthlyReading = calculateMonthlyReading(booksData);
@@ -37,6 +37,25 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
   // Rating heatmap
   const ratingHeatmap = calculateRatingHeatmap(booksData);
 
+  const readBooks = booksData.filter(b => b.shelf === 'read');
+  const tbrBooks = booksData.filter(b => b.shelf === 'to_read');
+  const currentBooks = booksData.filter(b => b.shelf === 'currently_reading');
+
+  // Sort by date_read descending to get the last one
+  const lastRead = readBooks.sort((a, b) => {
+      const dateA = new Date(a.date_read || 0).getTime();
+      const dateB = new Date(b.date_read || 0).getTime();
+      return dateB - dateA;
+  })[0] || null;
+
+  const summary: LibrarySummary = {
+      totalBooksRead: readBooks.length,
+      totalPagesRead: readBooks.reduce((sum, book) => sum + (book.num_pages || 0), 0),
+      tbrCount: tbrBooks.length,
+      currentlyReading: currentBooks[0] || null, // Just take the first one
+      lastRead: lastRead
+  };
+
   return {
     monthlyReading,
     monthlyPages,
@@ -44,6 +63,7 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
     shelfComposition,
     topAuthors,
     ratingHeatmap,
+    summary
   };
 }
 
