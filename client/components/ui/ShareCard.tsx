@@ -184,12 +184,6 @@ export default function ShareCard({
                         )}
                     </p>
                 </div>
-                <p className="text-sm mt-3">
-                    {/* replace with AI generated stuff later. */}
-                    Iras famulumque probat non spes, prius succedere primo. Non amnis ubi
-                    sine petis flamine, Rhamnusidis haec sedens placabilis Luna bracchia
-                    minuunt qualem! Cum felicia pendebant duorum nato attulerat pendebant
-                </p>
             </div>
             <div className="px-6 mt-5 absolute bottom-5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
