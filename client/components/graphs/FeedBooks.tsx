@@ -6,15 +6,27 @@ import { ACTION_TO_READABLE_STRING_MAP, GRAPH_THEME } from "@/lib/constants"
 import { COLORS } from "@/lib/utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function FeedBooks({ data }: { data: any }) {
+export default function FeedBooks({ data }: { data: any[] }) {
+    if (!data || data.length === 0) {
+        return <GraphWrapper title="Activity breakdown"><div>No data available</div></GraphWrapper>;
+    }
+
     const allKeys = Object.keys(data[0]);
     const barKeys = allKeys.filter(key => key !== 'action' && key !== 'other');
+
+    const filteredData = data.filter(item => {
+        return barKeys.some(key => item[key] > 0);
+    });
+
+    if (filteredData.length === 0) {
+        return <GraphWrapper title="Activity breakdown"><div>No activity data to display</div></GraphWrapper>;
+    }
     return (
         <GraphWrapper title="Activity breakdown">
             <ResponsiveBar
                 enableLabel={true}
                 isInteractive={false}
-                data={data}
+                data={filteredData}
                 indexBy="action"
                 keys={barKeys}
                 labelSkipHeight={10}
