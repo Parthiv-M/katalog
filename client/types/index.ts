@@ -48,9 +48,9 @@ export interface AuthorCount {
   count: number;
 }
 
-export interface RatingCell {
-  id: string;
-  data: { x: string; y: number; }[];
+export interface RatingBucket {
+  rating: string;
+  count: number;
 }
 
 
@@ -60,7 +60,7 @@ export interface DashboardData {
   readingTimeData: ReadingTime[];
   shelfComposition: ShelfComposition;
   topAuthors: AuthorCount[];
-  ratingHeatmap: RatingCell[];
+  ratingDistribution: RatingBucket[];
   summary: LibrarySummary
 }
 
@@ -80,9 +80,9 @@ export interface Feed {
   time_ago?: string | null;
 }
 
-export interface ActionBreakdown {
-  action: string;
-  [bookTitle: string]: number | string;
+export interface DailyActivity {
+  day: string;
+  count: number;
 }
 
 export interface CalendarDay {
@@ -96,10 +96,9 @@ export interface ActivityStream {
 }
 
 export interface FeedData {
-  actionBreakdown: ActionBreakdown[];
+  dailyActivity: DailyActivity[];
   calendarData: CalendarDay[];
   networkActivity: ActivityStream[];
-  top10BookTitles: string[];
   feedMessageList: Feed[]
 }
 

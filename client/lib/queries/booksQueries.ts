@@ -34,8 +34,8 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
   // Top 5 authors
   const topAuthors = calculateTopAuthors(booksData);
 
-  // Rating heatmap
-  const ratingHeatmap = calculateRatingHeatmap(booksData);
+  // Rating distribution (how many books got each star, 1-5)
+  const ratingDistribution = calculateRatingDistribution(booksData);
 
   const readBooks = booksData.filter(b => b.shelf === 'read');
   const tbrBooks = booksData.filter(b => b.shelf === 'to_read');
@@ -62,7 +62,7 @@ export async function getDashboardData(userId?: string): Promise<DashboardData> 
     readingTimeData,
     shelfComposition,
     topAuthors,
-    ratingHeatmap,
+    ratingDistribution,
     summary
   };
 }
@@ -281,71 +281,26 @@ function calculateTopAuthors(books: Book[]) {
   }));
 }
 
-// Helper for bucketing community ratings
-function getCommunityBucket(rating: number): string | null {
-  if (rating < 0 || rating > 5) return null; // Invalid data
-  if (rating <= 1) return '0-1';
-  if (rating <= 2) return '1-2';
-  if (rating <= 3) return '2-3';
-  if (rating <= 4) return '3-4';
-  if (rating <= 5) return '4-5';
-  return null;
-}
-
-function calculateRatingHeatmap(books: Book[]) {
-  // `Map<UserRating, Map<CommunityBucket, Count>>`
-  const heatmapData = new Map<number, Map<string, number>>();
-  // Initialize the 5x5 grid
+function calculateRatingDistribution(books: Book[]) {
+  // Count books per user rating (1-5). Always emit all 5 buckets (zero-filled)
+  // so the bar chart axis stays stable.
+  const counts = new Map<number, number>();
   for (let i = 1; i <= 5; i++) {
-    const bucketMap = new Map<string, number>();
-    bucketMap.set('0-1', 0);
-    bucketMap.set('1-2', 0);
-    bucketMap.set('2-3', 0);
-    bucketMap.set('3-4', 0);
-    bucketMap.set('4-5', 0);
-    heatmapData.set(i, bucketMap);
+    counts.set(i, 0);
   }
 
-  const validBooks = books.filter(
-    (book) =>
-      book.rating != null && // User rating
-      book.avg_rating != null // Community rating
-  );
+  const ratedBooks = books.filter((book) => book.rating != null);
 
-  for (const book of validBooks) {
+  for (const book of ratedBooks) {
     const userRating = book.rating!;
-    // avg_rating is 'numeric' which can be a string, so parse it
-    const communityRating = parseFloat(String(book.avg_rating));
-
-    // Ensure user rating is valid
-    if (userRating < 1 || userRating > 5 || isNaN(communityRating)) {
+    if (userRating < 1 || userRating > 5) {
       continue;
     }
-
-    const bucket = getCommunityBucket(communityRating);
-
-    if (bucket) {
-      try {
-        const userRatingMap = heatmapData.get(userRating)!;
-        userRatingMap.set(bucket, userRatingMap.get(bucket)! + 1);
-      } catch (e) {
-        console.warn('Error processing rating:', userRating, bucket);
-      }
-    }
+    counts.set(userRating, counts.get(userRating)! + 1);
   }
 
-  // Convert the Map into the Nivo array format
-  const nivoData = [];
-  for (const [userRating, bucketMap] of heatmapData.entries()) {
-    const seriesData = {
-      id: String(userRating), // '1', '2', '3', '4', '5'
-      data: Array.from(bucketMap.entries()).map(([bucket, count]) => ({
-        x: bucket, // '0-1', '1-2', ...
-        y: count,
-      })),
-    };
-    nivoData.push(seriesData);
-  }
-
-  return nivoData;
+  return Array.from(counts.entries()).map(([rating, count]) => ({
+    rating: String(rating), // '1', '2', '3', '4', '5'
+    count,
+  }));
 }

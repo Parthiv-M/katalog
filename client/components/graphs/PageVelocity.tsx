@@ -19,7 +19,7 @@ export default function PageVelocity({ data }: { data: any }) {
         <GraphWrapper title="Number of pages per month">
             <ResponsiveLine
                 data={data}
-                margin={{ top: 40, right: 20, bottom: 20, left: 20 }}
+                margin={{ top: 40, right: 60, bottom: 20, left: 60 }}
                 yScale={{ type: 'linear', min: 'auto', max: 'auto' }}
                 curve="natural"
                 pointSize={12}

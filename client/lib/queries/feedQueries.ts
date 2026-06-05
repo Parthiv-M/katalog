@@ -1,4 +1,4 @@
-import { ActionBreakdown, ActivityStream, CalendarDay, Feed, FeedData } from "@/types";
+import { DailyActivity, ActivityStream, CalendarDay, Feed, FeedData } from "@/types";
 import { supabase } from "../supabase";
 import { ALL_POSSIBLE_ACTIONS, FEED_TABLE_NAME } from "../constants";
 
@@ -21,17 +21,7 @@ export async function getFeedData(userId?: string): Promise<FeedData> {
     ];
     const allActionsForCharts = Array.from(new Set([...ALL_POSSIBLE_ACTIONS, ...discoveredActions]));
 
-    const allActions = [
-        ...new Set(feedData.map((item) => item.action).filter(Boolean) as string[]),
-    ];
-
-    const top10BookTitles = getTop10Books(feedData);
-
-    const actionBreakdown = calculateActionBreakdown(
-        feedData,
-        allActions,
-        top10BookTitles
-    );
+    const dailyActivity = calculateDailyActivity(feedData);
 
     const calendarData = calculateCalendarData(feedData);
 
@@ -51,68 +41,38 @@ export async function getFeedData(userId?: string): Promise<FeedData> {
     const feedMessageList = (feedMessages as Feed[]) || [];
 
     return {
-        actionBreakdown,
+        dailyActivity,
         calendarData,
         networkActivity,
-        top10BookTitles,
         feedMessageList
     };
 }
 
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+// Display order (Mon -> Sun)
+const WEEKDAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 /**
- * Helper to get the top 10 most frequent book titles
+ * Count how many feed events happen on each day of the week.
+ * Always returns all 7 days (Mon -> Sun, zero-filled) so the bars stay stable.
  */
-function getTop10Books(feed: Feed[]): string[] {
-    const bookMap = new Map<string, number>();
+function calculateDailyActivity(feed: Feed[]): DailyActivity[] {
+    const counts = new Map<string, number>();
+    for (const day of WEEKDAY_ORDER) {
+        counts.set(day, 0);
+    }
 
     for (const item of feed) {
-        if (!item.book_title) continue;
-        bookMap.set(item.book_title, (bookMap.get(item.book_title) || 0) + 1);
+        if (!item.timestamp) continue;
+
+        const date = new Date(item.timestamp);
+        if (isNaN(date.getTime())) continue;
+
+        const day = WEEKDAYS[date.getDay()];
+        counts.set(day, (counts.get(day) || 0) + 1);
     }
 
-    const sortedBooks = Array.from(bookMap.entries()).sort(
-        (a, b) => b[1] - a[1]
-    );
-    return sortedBooks.slice(0, 9).map((b) => b[0]);
-}
-
-function calculateActionBreakdown(
-    feed: Feed[],
-    allActions: string[],
-    top10BookTitles: string[]
-): ActionBreakdown[] {
-    const topBooksSet = new Set(top10BookTitles);
-
-    const bookCountTemplate: { [key: string]: number } = {};
-    for (const title of top10BookTitles) {
-        bookCountTemplate[title] = 0;
-    }
-    bookCountTemplate['other'] = 0;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const actionMap = new Map<string, any>();
-    for (const action of allActions) {
-        actionMap.set(action, { ...bookCountTemplate });
-    }
-
-    // Populate the map
-    for (const item of feed) {
-        if (!item.action || !item.book_title) continue;
-
-        const actionStats = actionMap.get(item.action);
-        if (!actionStats) continue; // Not one of the main actions
-
-        if (topBooksSet.has(item.book_title)) {
-            actionStats[item.book_title] += 1;
-        } else {
-            actionStats['other'] += 1;
-        }
-    }
-
-    return Array.from(actionMap.entries()).map(([action, bookCounts]) => ({
-        action,
-        ...bookCounts,
-    }));
+    return WEEKDAY_ORDER.map((day) => ({ day, count: counts.get(day)! }));
 }
 
 

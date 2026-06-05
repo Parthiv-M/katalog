@@ -1,6 +1,6 @@
 "use client";
 
-import { ResponsiveCalendar } from "@nivo/calendar";
+import { ResponsiveTimeRange } from "@nivo/calendar";
 import GraphWrapper from "./GraphWrapper";
 import { COLORS } from "@/lib/utils";
 import { GRAPH_THEME } from "@/lib/constants";
@@ -15,19 +15,24 @@ const CalendarTooltip = ({ node }: { node: any }) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function FeedCalendar({ data }: { data: any }) {
+    // Show only the last 6 calendar months, ending today, as a continuous strip
+    const today = new Date();
+    const sixMonthsAgo = new Date(today);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const to = today.toISOString().slice(0, 10);
+    const from = sixMonthsAgo.toISOString().slice(0, 10);
+
     return (
         <GraphWrapper title="Network activity" isAlwaysTitle={false}>
-            <ResponsiveCalendar
+            <ResponsiveTimeRange
                 data={data}
-                from={data[data.length - 1].day}
-                to={data[0].day}
+                from={from}
+                to={to}
                 emptyColor={COLORS.background}
-                margin={{ top: 20, right: 20, bottom: 20, left: 30 }}
+                margin={{ top: 40, right: 20, bottom: 20, left: 30 }}
                 dayBorderColor={COLORS.surfaceLight}
-                yearLegend={_ => ""}
-                monthBorderColor={COLORS.surfaceLight}
-                monthBorderWidth={1}
-                monthSpacing={20}
+                weekdayLegendOffset={0}
+                weekdayTicks={[]}
                 theme={GRAPH_THEME}
                 legends={[
                     {
