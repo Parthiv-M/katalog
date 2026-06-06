@@ -15,6 +15,7 @@ import StatusBar from '@/components/ui/StatusBar';
 import ChallengeTile from '@/components/ui/ChallengeTile';
 import Katalog from '@/components/ui/Logo';
 import ShareCard from '@/components/ui/ShareCard';
+import DesktopGraphsNotice from '@/components/ui/DesktopGraphsNotice';
 import { ReadingChallenge } from '@/types';
 import { getChallengeData } from '@/lib/queries/challengeQueries';
 
@@ -31,7 +32,7 @@ export default async function Page() {
             <Katalog />
             {/* first page: Dashboard */}
             <div className="lg:h-screen lg:px-48 snap-start shrink-0">
-                <div className="h-full grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-3 gap-3 p-3 auto-rows-[22rem] lg:auto-rows-auto">
+                <div className="h-full grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-3 gap-3 p-3 auto-rows-[minmax(22rem,auto)] lg:auto-rows-auto">
                     <Card><ReadingVelocity data={data.monthlyReading} /></Card>
                     <Card classes="lg:block">
                         <ShareCard summary={data.summary} topAuthor={topAuthorName} percentage={challenge?.percentage || 0} />
@@ -62,16 +63,21 @@ export default async function Page() {
                     </Card>
 
                     <Card classes="lg:block"><ChallengeTile /></Card>
-                    <Card classes="lg:order-none order-last row-span-2 lg:block">
+                    <Card classes="lg:order-none lg:row-span-2 lg:block">
                         <RatingDistribution data={data.ratingDistribution} />
                     </Card>
 
-                    <Card classes='lg:col-span-2'>
+                    <Card classes='hidden lg:block lg:col-span-2'>
                         <FeedCalendar data={feed.calendarData} />
                     </Card>
 
-                    <Card classes='lg:col-span-3'>
+                    <Card classes='hidden lg:block lg:col-span-3'>
                         <NetworkStream data={feed.networkActivity} />
+                    </Card>
+
+                    {/* Mobile-only: graphs above are hidden on small screens */}
+                    <Card classes='lg:hidden'>
+                        <DesktopGraphsNotice />
                     </Card>
                 </div>
             </div>

@@ -14,7 +14,7 @@ export default function ShareCard({
 
     return (
         <div
-            className="h-full w-full relative group overflow-hidden bg-zinc-900 rounded-lg border border-zinc-700/50"
+            className="h-auto lg:h-full w-full relative group overflow-hidden bg-zinc-900 rounded-lg border border-zinc-700/50"
         >
             <div className='relative w-full h-40 bg-[url(/books.jpg)] bg-cover grayscale'>
                 <div className='w-full h-full flex flex-col justify-center bg-gradient-to-r from-zinc-900 via-zinc-900/80 to-transparent px-6 py-4'>
@@ -52,7 +52,7 @@ export default function ShareCard({
                     </p>
                 </div>
             </div>
-            <div className="px-6 mt-5 absolute bottom-5">
+            <div className="px-6 mt-5 pb-5 relative lg:absolute lg:bottom-5 lg:pb-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/katalog.png" height={20} width={80} alt="Katalog Logo" />
             </div>
