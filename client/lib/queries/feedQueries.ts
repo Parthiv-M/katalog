@@ -49,30 +49,32 @@ export async function getFeedData(userId?: string): Promise<FeedData> {
 }
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-// Display order (Mon -> Sun)
-const WEEKDAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Count how many feed events happen on each day of the week.
- * Always returns all 7 days (Mon -> Sun, zero-filled) so the bars stay stable.
+ * Count feed events for each of the last 7 calendar days (oldest -> today),
+ * labelled by weekday name. Days with no activity are zero-filled.
  */
 function calculateDailyActivity(feed: Feed[]): DailyActivity[] {
-    const counts = new Map<string, number>();
-    for (const day of WEEKDAY_ORDER) {
-        counts.set(day, 0);
-    }
-
+    // Tally events per calendar day ("YYYY-MM-DD")
+    const dayCounts = new Map<string, number>();
     for (const item of feed) {
         if (!item.timestamp) continue;
-
-        const date = new Date(item.timestamp);
-        if (isNaN(date.getTime())) continue;
-
-        const day = WEEKDAYS[date.getDay()];
-        counts.set(day, (counts.get(day) || 0) + 1);
+        const key = item.timestamp.slice(0, 10);
+        dayCounts.set(key, (dayCounts.get(key) || 0) + 1);
     }
 
-    return WEEKDAY_ORDER.map((day) => ({ day, count: counts.get(day)! }));
+    const now = Date.now();
+    const result: DailyActivity[] = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(now - i * DAY_MS);
+        const key = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
+        result.push({
+            day: WEEKDAYS[date.getUTCDay()],
+            count: dayCounts.get(key) || 0,
+        });
+    }
+    return result;
 }
 
 

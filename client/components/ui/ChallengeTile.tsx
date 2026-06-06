@@ -69,12 +69,11 @@ export default async function ChallengeCard() {
 
     return (
         <GraphWrapper title={`Reading challenge ${data.year}`}>
-            <div className="p-4 h-full flex items-center justify-between gap-8">
-            <div className="relative flex-shrink-0 flex items-center justify-center">
+            <div className="p-4 h-full flex flex-col xl:flex-row items-center justify-center xl:justify-between gap-4 xl:gap-6">
+            <div className="relative flex-shrink-0 flex items-center justify-center w-40 lg:w-44 xl:w-52 aspect-square">
                 <svg
-                    height={radius * 2 + 10} // Padding
-                    width={radius * 2 + 10}
-                    className="rotate-[-90deg] overflow-visible"
+                    viewBox={`0 0 ${radius * 2 + 10} ${radius * 2 + 10}`}
+                    className="rotate-[-90deg] overflow-visible w-full h-full"
                 >
                     {/* Background Track */}
                     <circle
@@ -126,14 +125,14 @@ export default async function ChallengeCard() {
                     </span>
                 </div>
             </div>
-            <div className="flex flex-col justify-center flex-1 min-w-0">
+            <div className="flex flex-col justify-center flex-1 min-w-0 text-center xl:text-left">
                 <h3 className="text-2xl font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis">
                     {messageTitle}
                 </h3>
                 <h4 className="text-2xl font-medium text-neutral-400 mb-2">
                     {messageSubtitle}
                 </h4>
-                <p className="w-64 text-md text-neutral-500 leading-relaxed">
+                <p className="text-sm text-neutral-500 leading-relaxed xl:max-w-xs">
                     {messageBody}
                 </p>
             </div>
