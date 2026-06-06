@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 import time
 import re
+import dateutil.parser
 from typing import Dict, List, Optional
 import os
 import ast
@@ -407,7 +408,9 @@ class Katalog:
                 await context.add_cookies(playwright_cookies)
                 
                 page = await context.new_page()
-                await page.goto(self.base_url)
+                # Wait for the DOM rather than every subresource; Goodreads' home
+                # page often doesn't fire "load" within the default 30s timeout.
+                await page.goto(self.base_url, wait_until="domcontentloaded", timeout=60000)
                 
                 try:
                     await page.wait_for_selector('div.gr-newsfeedItem', timeout=20000)
@@ -610,29 +613,34 @@ class Katalog:
         return challenge_data
 
     def _parse_date(self, date_str: str) -> Optional[str]:
-        # This is a utility function, no logging needed
+        # Normalise Goodreads dates
         if not date_str: return None
         date_str = date_str.strip()
         if 'unknown' in date_str.lower() or 'not set' in date_str.lower(): return None
         date_str = re.sub(r'^\w+,\s*', '', date_str).strip()
         date_str = re.sub(r'\s+\d+:\d+(AM|PM)?$', '', date_str).strip()
         try:
-            if re.match(r'^\d{1,2},\s*\d{4}$', date_str):
-                year = date_str.split(',')[-1].strip()
-                return year if len(year) == 4 and year.isdigit() else None
+            # "Feb 05, 2019" resolves to full date
             if re.match(r'^[A-Za-z]{3,}\s+\d{1,2},\s+\d{4}$', date_str):
                 try: date_obj = datetime.strptime(date_str, "%b %d, %Y")
                 except ValueError: date_obj = datetime.strptime(date_str, "%B %d, %Y")
                 return date_obj.strftime("%Y-%m-%d")
+            # "Dec 2024" resolves to first of that month
             if re.match(r'^[A-Za-z]{3,}\s+\d{4}$', date_str):
                 try: date_obj = datetime.strptime(date_str, "%b %Y")
                 except ValueError: date_obj = datetime.strptime(date_str, "%B %Y")
-                return date_obj.strftime("%Y-%m")
-            if len(date_str) == 4 and date_str.isdigit():
-                return date_str
-            return date_str
+                return date_obj.strftime("%Y-%m-01")
+            # "05, 2019" / "1, 2024" resolves to first of that year
+            if re.match(r'^\d{1,2},\s*\d{4}$', date_str):
+                year = date_str.split(',')[-1].strip()
+                return f"{year}-01-01" if len(year) == 4 and year.isdigit() else None
+            # "1973" resolves to first of that year
+            if re.match(r'^\d{4}$', date_str):
+                return f"{date_str}-01-01"
+            # anything else, parse with dateutil
+            return dateutil.parser.parse(date_str).strftime("%Y-%m-%d")
         except Exception:
-            return date_str
+            return None
     
     def calculate_statistics(self, books_data: Dict) -> Dict:
         # This is a pure function, no logging needed
