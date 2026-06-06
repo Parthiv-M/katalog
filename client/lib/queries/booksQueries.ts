@@ -85,9 +85,10 @@ function calculateMonthlyReading(books: Book[]) {
     }
   }
 
-  const sortedData = Array.from(monthMap.entries()).slice(0, 8).sort((a, b) =>
-    a[0].localeCompare(b[0])
-  );
+  // Sort chronologically first, then keep the 8 most recent months
+  const sortedData = Array.from(monthMap.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-8);
 
   return sortedData.map(([key, count]) => {
     const date = new Date(`${key}-01T12:00:00Z`);
@@ -121,10 +122,10 @@ function calculateMonthlyPages(books: Book[]) {
     }
   }
 
-  // Get entries, sort by key (YYYY-MM)
-  const sortedData = Array.from(pageMap.entries()).slice(0, 6).sort((a, b) =>
-    a[0].localeCompare(b[0])
-  );
+  // Sort by key (YYYY-MM) first, then keep the 6 most recent months
+  const sortedData = Array.from(pageMap.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-6);
 
   const lineData = sortedData.map(([key, pages]) => {
     const date = new Date(`${key}-01T12:00:00Z`);
