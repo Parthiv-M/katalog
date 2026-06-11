@@ -55,16 +55,23 @@ async def main():
         try:
             hwm = db_client.get_feed_highwatermark()
             all_feed_items = data.get('feed_activity', [])
-            new_feed_items = []
 
+            # Drop items without a timestamp: they can't be ordered, de-duped
+            # against the high-water mark, or rendered on the time-based graphs.
+            feed_items = [item for item in all_feed_items if item.timestamp]
+            dropped = len(all_feed_items) - len(feed_items)
+            if dropped:
+                logging.warning("Skipping %d feed item(s) with no timestamp.", dropped)
+
+            new_feed_items = []
             if hwm:
-                for item in all_feed_items:
+                for item in feed_items:
                     item_time = dateutil.parser.isoparse(item.timestamp)
                     if item_time > hwm:
                         new_feed_items.append(item)
             else:
-                # If no high-water mark, insert all items
-                new_feed_items = all_feed_items
+                # If no high-water mark, insert all (timestamped) items
+                new_feed_items = feed_items
             
             db_client.insert_feed_items(new_feed_items)
 
