@@ -4,10 +4,11 @@ import asyncio
 import dateutil.parser
 from datetime import datetime, timezone, timedelta
 
-from config import GOODREADS_COOKIE, GOODREADS_USER_ID, ENVIRONMENT
+from config import GOODREADS_COOKIE, GOODREADS_USER_ID, ENVIRONMENT, RENDER_DEPLOY_HOOK_URL
 from utils import setup_logging, save_output_files_locally
 from katalog import Katalog
 import db_client
+import requests
 from schemas import ReadingChallenge
 
 async def main():
@@ -105,6 +106,20 @@ async def main():
                 logging.warning(f"Could not update last_refreshed or next_scrape time: {e}")
                 
             logging.info("Supabase data sync complete.")
+
+            # Trigger a redeploy of the client on Render
+            if RENDER_DEPLOY_HOOK_URL:
+                try:
+                    logging.info("Triggering Render deploy hook for client rebuild...")
+                    resp = requests.post(RENDER_DEPLOY_HOOK_URL, timeout=30)
+                    if resp.ok:
+                        logging.info("Render deploy hook triggered successfully (HTTP %d).", resp.status_code)
+                    else:
+                        logging.warning("Render deploy hook returned HTTP %d: %s", resp.status_code, resp.text)
+                except Exception as e:
+                    logging.warning("Failed to trigger Render deploy hook: %s", e)
+            else:
+                logging.info("RENDER_DEPLOY_HOOK_URL not set; skipping client redeploy.")
             
         except Exception as e:
             logging.exception("An error occurred during Supabase data insertion.")
